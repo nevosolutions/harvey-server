@@ -1,52 +1,59 @@
 import express from "express";
-import bodyParser from "body-parser";
-import fetch from "node-fetch";
 
 const app = express();
-app.use(bodyParser.json());
+app.use(express.json());
 
-// Default Harvey prompt (Wolf of Wall Street style)
-const defaultPrompt = `You are Harvey, a charismatic outbound cold-caller for Nevo Solutions.
-You sound human, natural, and persuasive (think Wolf of Wall Street but friendly).
-Use conversational fillers like "uh," "right," "so..." but never sound robotic.
-Your only mission: book the prospect into a call with Nevo Solutions’ head office.
-Do not discuss pricing. If asked, redirect confidently to head office.
-Build rapport, handle objections smoothly, but always circle back to the pitch.
-If the prospect talks off-topic, briefly engage, then bring it back to booking the call.`;
+app.post("/v1/chat/completions", (req, res) => {
+  const messages = req.body.messages || [];
+  const lastMessage = messages[messages.length - 1]?.content || "";
 
-// Use HARVEY_PROMPT env var if available, otherwise fallback
-const HARVEY_PROMPT = process.env.HARVEY_PROMPT || defaultPrompt;
+  // Default sales-style response
+  let reply = "Hey, this is Harvey from Nevo Solutions. How’s your day going so far?";
 
-app.post("/webhook", async (req, res) => {
-  try {
-    const userMessage = req.body.message || "";
-
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        messages: [
-          { role: "system", content: HARVEY_PROMPT },
-          { role: "user", content: userMessage }
-        ],
-      }),
-    });
-
-    const data = await response.json();
-    const reply = data.choices?.[0]?.message?.content || "Sorry, I didn’t catch that.";
-
-    res.json({ reply });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Internal Server Error" });
+  if (lastMessage) {
+    reply = generateHarveyResponse(lastMessage);
   }
+
+  res.json({
+    id: "chatcmpl-" + Date.now(),
+    object: "chat.completion",
+    created: Date.now(),
+    model: "harvey-1",
+    choices: [
+      {
+        index: 0,
+        message: {
+          role: "assistant",
+          content: reply,
+        },
+        finish_reason: "stop",
+      },
+    ],
+  });
 });
+
+// --- Harvey's style and logic ---
+function generateHarveyResponse(userInput) {
+  const lower = userInput.toLowerCase();
+
+  // If user shows interest
+  if (lower.includes("yes") || lower.includes("okay") || lower.includes("tell me")) {
+    return "Right, that makes sense. So... let me break this down real quick. At Nevo Solutions, we provide AI receptionists that never take breaks, never call in sick, and cost about half of what a human receptionist would. The best part? We can even handle outbound calls like this one, generating leads for you on autopilot. Would you be open to booking a quick call with my team so we can show you exactly how this works?";
+  }
+
+  // If user hesitates
+  if (lower.includes("busy") || lower.includes("not interested")) {
+    return "I get it, totally. Time’s valuable, right? Uh, the reason I’m reaching out is because what we’re doing is literally saving companies thousands every year. So... would you be against me setting up a short, no-pressure call with our head office so you can see if this fits your business?";
+  }
+
+  // If user asks about price
+  if (lower.includes("price") || lower.includes("cost")) {
+    return "Great question — I don’t handle pricing myself. What I can do is book you in with my head office team, who’ll walk you through the numbers and options. When’s a good time for a quick chat?";
+  }
+
+  // Default fallback
+  return "Uh, yeah, I hear you. So... here’s the thing: our AI receptionists basically run 24/7, never miss a call, never take holidays — and they do it for half the cost of a full-time hire. What makes the most sense is for me to get you on a quick call with my team so they can dive deeper. Does that sound fair?";
+}
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Harvey server running on port ${PORT}`);
-});
+app.listen(PORT, () => console.log(`✅ Harvey server running on port ${PORT}`));
