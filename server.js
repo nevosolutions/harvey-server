@@ -18,9 +18,11 @@ app.post("/v1/chat/completions", async (req, res) => {
   const userText =
     lastMessage?.role === "user" ? lastMessage.content : "Hello there!";
 
-  const replyText = `Hi, this is Harvey from Nevo Solutions. You said: "${userText}". I'm glad you picked up — let me quickly explain how we help businesses never miss a call.`; 
+  const replyText = `Hello, this is Harvey. I heard you say: "${userText}". Can you hear me okay?`;
 
   console.log("📤 Replying with:", replyText);
+
+  res.setHeader("Content-Type", "application/json"); // ✅ force JSON
 
   res.json({
     id: "chatcmpl-" + Date.now(),
@@ -34,15 +36,14 @@ app.post("/v1/chat/completions", async (req, res) => {
           role: "assistant",
           content: replyText,
         },
-        text: replyText, // ✅ for Vapi fallback
+        text: replyText,
         finish_reason: "stop",
       },
     ],
     usage: {
       prompt_tokens: messages.length * 10,
       completion_tokens: replyText.split(" ").length,
-      total_tokens:
-        messages.length * 10 + replyText.split(" ").length,
+      total_tokens: messages.length * 10 + replyText.split(" ").length,
     },
   });
 });
