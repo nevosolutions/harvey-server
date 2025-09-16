@@ -4,47 +4,42 @@ const app = express();
 app.use(express.json());
 
 app.post("/v1/chat/completions", async (req, res) => {
-  try {
-    const { messages } = req.body;
+  console.log("📥 Incoming request:", JSON.stringify(req.body, null, 2));
 
-    // Grab the latest user message
-    const userMessage = messages.findLast(m => m.role === "user")?.content || "";
+  const messages = req.body.messages || [];
+  const lastMessage = messages[messages.length - 1];
+  const userInput = lastMessage?.role === "user" ? lastMessage.content : "";
 
-    // Build a reply
-    let reply = "Hello, this is Harvey, your AI receptionist. How can I help you today?";
-    if (userMessage) {
-      reply = `Hello, this is Harvey. I heard you say: "${userMessage}". Can you hear me okay?`;
-    }
+  const reply =
+    userInput && userInput.trim().length > 0
+      ? `Hello, this is Harvey. I heard you say: "${userInput}". Can you hear me okay?`
+      : "Hi, this is Harvey speaking. How can I help?";
 
-    // Respond in OpenAI-compatible format (NO "text" field)
-    res.json({
-      id: `chatcmpl-${Date.now()}`,
-      object: "chat.completion",
-      created: Date.now(),
-      model: "harvey-1",
-      choices: [
-        {
-          index: 0,
-          message: {
-            role: "assistant",
-            content: reply
-          },
-          finish_reason: "stop"
-        }
-      ],
-      usage: {
-        prompt_tokens: messages.length,
-        completion_tokens: reply.split(" ").length,
-        total_tokens: messages.length + reply.split(" ").length
-      }
-    });
-  } catch (err) {
-    console.error("Error in /v1/chat/completions:", err);
-    res.status(500).json({ error: "Internal server error" });
-  }
+  const responsePayload = {
+    id: `chatcmpl-${Date.now()}`,
+    object: "chat.completion",
+    created: Date.now(),
+    model: "harvey-1",
+    choices: [
+      {
+        index: 0,
+        message: {
+          role: "assistant",
+          content: reply,
+        },
+        finish_reason: "stop",
+      },
+    ],
+    // 👇 Add this so Vapi always has top-level `content`
+    response: {
+      content: reply,
+    },
+  };
+
+  console.log("📤 Sending response:", JSON.stringify(responsePayload, null, 2));
+  res.json(responsePayload);
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Harvey server running on port ${PORT}`);
+app.listen(10000, () => {
+  console.log("✅ Harvey Hello World server running on port 10000");
 });
