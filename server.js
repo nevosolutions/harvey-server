@@ -18,12 +18,13 @@ app.post("/v1/chat/completions", (req, res) => {
 
   console.log("📤 Replying:", reply);
 
-  // ✅ OpenAI-style JSON + "text" field so Vapi will speak it
+  // ✅ Now includes top-level "content" so Vapi will speak it
   res.json({
     id: "chatcmpl-" + Date.now(),
     object: "chat.completion",
     created: Date.now(),
     model: "harvey-1",
+    content: reply,   // 👈 important for Vapi
     choices: [
       {
         index: 0,
@@ -31,7 +32,7 @@ app.post("/v1/chat/completions", (req, res) => {
           role: "assistant",
           content: reply,
         },
-        text: reply,  // 👈 important for Vapi to actually speak it
+        text: reply,   // 👈 also kept for compatibility
         finish_reason: "stop",
       },
     ],
