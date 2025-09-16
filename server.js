@@ -18,14 +18,14 @@ app.post("/v1/chat/completions", async (req, res) => {
   const userText =
     lastMessage?.role === "user" ? lastMessage.content : "Hello there!";
 
-  const replyText = `Right, I hear you — "${userText}". Look, I don’t want to keep you long. The reason I’m calling is simple: most businesses are missing calls or overpaying for staff. Nevo Solutions fixes that with an AI receptionist that runs 24/7 at half the cost. How about I book you in with our head office to explore this?`;
+  const replyText = `Hi, this is Harvey from Nevo Solutions. You said: "${userText}". I'm glad you picked up — let me quickly explain how we help businesses never miss a call.`; 
 
   console.log("📤 Replying with:", replyText);
 
   res.json({
     id: "chatcmpl-" + Date.now(),
     object: "chat.completion",
-    created: Date.now(),
+    created: Math.floor(Date.now() / 1000),
     model: "harvey-1",
     choices: [
       {
@@ -34,10 +34,16 @@ app.post("/v1/chat/completions", async (req, res) => {
           role: "assistant",
           content: replyText,
         },
-        text: replyText, // ✅ added for Vapi compatibility
+        text: replyText, // ✅ for Vapi fallback
         finish_reason: "stop",
       },
     ],
+    usage: {
+      prompt_tokens: messages.length * 10,
+      completion_tokens: replyText.split(" ").length,
+      total_tokens:
+        messages.length * 10 + replyText.split(" ").length,
+    },
   });
 });
 
