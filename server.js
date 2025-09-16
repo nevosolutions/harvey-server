@@ -6,6 +6,8 @@ app.use(express.json());
 app.post("/v1/chat/completions", (req, res) => {
   console.log("📥 Incoming:", JSON.stringify(req.body, null, 2));
 
+  const reply = "Hello, this is Harvey speaking! Can you hear me now?";
+
   const responseJson = {
     id: "chatcmpl-" + Date.now(),
     object: "chat.completion",
@@ -16,11 +18,12 @@ app.post("/v1/chat/completions", (req, res) => {
         index: 0,
         message: {
           role: "assistant",
-          content: "Hello, this is Harvey speaking! Can you hear me now?",
+          content: reply,
         },
-        finish_reason: "stop",
-      },
-    ],
+        text: reply,   // 👈 Added back so Vapi has a plain field to read
+        finish_reason: "stop"
+      }
+    ]
   };
 
   console.log("📤 Sending JSON:", JSON.stringify(responseJson, null, 2));
