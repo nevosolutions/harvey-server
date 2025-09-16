@@ -9,15 +9,16 @@ app.post("/v1/chat/completions", (req, res) => {
 
   console.log("📥 Incoming:", JSON.stringify(messages, null, 2));
 
-  // Human-like, confident cold call style reply
-  let reply = "I'm glad to hear that. So I won’t take up too much of your time — the reason I’m calling is simple. Most businesses are losing money every week because of missed calls or paying too much for reception cover. That’s exactly where Nevo Solutions steps in. We provide an AI receptionist that never takes breaks, never calls in sick, and costs less than half of hiring someone. Does that sound like something that could help your business?";
+  // Simple, human sales-pitch style reply
+  let reply = "I'm glad to hear that. I won’t take up too much of your time — most businesses lose money every week on missed calls or staff costs. That’s why Nevo Solutions provides AI receptionists that never take breaks, never call in sick, and cost half of hiring a person. Would you be open to a quick chat with our head office to see how this could help your business?";
 
   if (lastMessage) {
-    reply = `Right, I hear you — "${lastMessage}". I'm glad you shared that. Look, I don’t want to keep you long, but here’s the deal: most businesses waste cash on missed calls or expensive staff. Nevo Solutions fixes that. Our AI receptionist handles every call, inbound and outbound, without ever taking a day off — and it’s half the price of a salary. How about I get you booked for a quick chat with our head office so we can run through what this could mean for you?`;
+    reply = `Right, I hear you — "${lastMessage}". Look, I don’t want to keep you long. The reason I’m calling is simple: most businesses are missing calls or overpaying for staff. Nevo Solutions fixes that with an AI receptionist that runs 24/7 at half the cost. How about I book you in with our head office to explore this?`;
   }
 
   console.log("📤 Replying:", reply);
 
+  // ✅ OpenAI-style JSON + "text" field so Vapi will speak it
   res.json({
     id: "chatcmpl-" + Date.now(),
     object: "chat.completion",
@@ -30,6 +31,7 @@ app.post("/v1/chat/completions", (req, res) => {
           role: "assistant",
           content: reply,
         },
+        text: reply,  // 👈 important for Vapi to actually speak it
         finish_reason: "stop",
       },
     ],
