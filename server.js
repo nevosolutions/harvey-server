@@ -4,21 +4,8 @@ const app = express();
 app.use(express.json());
 
 app.post("/v1/chat/completions", (req, res) => {
-  const messages = req.body.messages || [];
-  const lastMessage = messages[messages.length - 1]?.content || "";
+  console.log("📥 Incoming:", JSON.stringify(req.body, null, 2));
 
-  console.log("📥 Incoming:", JSON.stringify(messages, null, 2));
-
-  // Simple, human sales-pitch style reply
-  let reply = "I'm glad to hear that. I won’t take up too much of your time — most businesses lose money every week on missed calls or staff costs. That’s why Nevo Solutions provides AI receptionists that never take breaks, never call in sick, and cost half of hiring a person. Would you be open to a quick chat with our head office to see how this could help your business?";
-
-  if (lastMessage) {
-    reply = `Right, I hear you — "${lastMessage}". Look, I don’t want to keep you long. The reason I’m calling is simple: most businesses are missing calls or overpaying for staff. Nevo Solutions fixes that with an AI receptionist that runs 24/7 at half the cost. How about I book you in with our head office to explore this?`;
-  }
-
-  console.log("📤 Replying:", reply);
-
-  // ✅ Simplified JSON response for Vapi
   const responseJson = {
     id: "chatcmpl-" + Date.now(),
     object: "chat.completion",
@@ -29,7 +16,7 @@ app.post("/v1/chat/completions", (req, res) => {
         index: 0,
         message: {
           role: "assistant",
-          content: reply,
+          content: "Hello, this is Harvey speaking! Can you hear me now?",
         },
         finish_reason: "stop",
       },
@@ -37,9 +24,10 @@ app.post("/v1/chat/completions", (req, res) => {
   };
 
   console.log("📤 Sending JSON:", JSON.stringify(responseJson, null, 2));
-
   res.json(responseJson);
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`✅ Harvey server running on port ${PORT}`));
+app.listen(PORT, () =>
+  console.log(`✅ Harvey Hello World server running on port ${PORT}`)
+);
