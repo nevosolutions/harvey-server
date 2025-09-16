@@ -9,7 +9,7 @@ app.get("/", (req, res) => {
   res.send("✅ Harvey server running");
 });
 
-// Vapi expects this endpoint
+// Chat completions endpoint
 app.post("/v1/chat/completions", async (req, res) => {
   console.log("📥 Incoming request:", JSON.stringify(req.body, null, 2));
 
@@ -18,12 +18,10 @@ app.post("/v1/chat/completions", async (req, res) => {
   const userText =
     lastMessage?.role === "user" ? lastMessage.content : "Hello there!";
 
-  // Simple canned reply for now
   const replyText = `Right, I hear you — "${userText}". Look, I don’t want to keep you long. The reason I’m calling is simple: most businesses are missing calls or overpaying for staff. Nevo Solutions fixes that with an AI receptionist that runs 24/7 at half the cost. How about I book you in with our head office to explore this?`;
 
   console.log("📤 Replying with:", replyText);
 
-  // ✅ OpenAI-compatible JSON response
   res.json({
     id: "chatcmpl-" + Date.now(),
     object: "chat.completion",
@@ -36,6 +34,7 @@ app.post("/v1/chat/completions", async (req, res) => {
           role: "assistant",
           content: replyText,
         },
+        text: replyText, // ✅ added for Vapi compatibility
         finish_reason: "stop",
       },
     ],
