@@ -18,13 +18,13 @@ app.post("/v1/chat/completions", (req, res) => {
 
   console.log("📤 Replying:", reply);
 
-  // ✅ Now includes top-level "content" so Vapi will speak it
-  res.json({
+  // ✅ Build the JSON response
+  const responseJson = {
     id: "chatcmpl-" + Date.now(),
     object: "chat.completion",
     created: Date.now(),
     model: "harvey-1",
-    content: reply,   // 👈 important for Vapi
+    content: reply,   // 👈 top-level field for Vapi
     choices: [
       {
         index: 0,
@@ -32,11 +32,17 @@ app.post("/v1/chat/completions", (req, res) => {
           role: "assistant",
           content: reply,
         },
-        text: reply,   // 👈 also kept for compatibility
+        text: reply,   // 👈 also included for compatibility
         finish_reason: "stop",
       },
     ],
-  });
+  };
+
+  // 👀 Log the entire JSON so we can debug if needed
+  console.log("📤 Sending JSON:", JSON.stringify(responseJson, null, 2));
+
+  // Send it back
+  res.json(responseJson);
 });
 
 const PORT = process.env.PORT || 3000;
