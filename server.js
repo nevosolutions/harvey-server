@@ -4,6 +4,7 @@ const app = express();
 app.use(express.json());
 
 app.post("/v1/chat/completions", (req, res) => {
+console.log("📥 Incoming request:", req.body);
   const messages = req.body.messages || [];
   const lastMessage = messages[messages.length - 1]?.content || "";
 
