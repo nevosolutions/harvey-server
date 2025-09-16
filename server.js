@@ -4,16 +4,19 @@ const app = express();
 app.use(express.json());
 
 app.post("/v1/chat/completions", (req, res) => {
-console.log("📥 Incoming request:", req.body);
   const messages = req.body.messages || [];
   const lastMessage = messages[messages.length - 1]?.content || "";
 
-  // Default sales-style response
-  let reply = "Hey, this is Harvey from Nevo Solutions. How’s your day going so far?";
+  console.log("📥 Incoming:", JSON.stringify(messages, null, 2));
+
+  // Human-like, confident cold call style reply
+  let reply = "I'm glad to hear that. So I won’t take up too much of your time — the reason I’m calling is simple. Most businesses are losing money every week because of missed calls or paying too much for reception cover. That’s exactly where Nevo Solutions steps in. We provide an AI receptionist that never takes breaks, never calls in sick, and costs less than half of hiring someone. Does that sound like something that could help your business?";
 
   if (lastMessage) {
-    reply = generateHarveyResponse(lastMessage);
+    reply = `Right, I hear you — "${lastMessage}". I'm glad you shared that. Look, I don’t want to keep you long, but here’s the deal: most businesses waste cash on missed calls or expensive staff. Nevo Solutions fixes that. Our AI receptionist handles every call, inbound and outbound, without ever taking a day off — and it’s half the price of a salary. How about I get you booked for a quick chat with our head office so we can run through what this could mean for you?`;
   }
+
+  console.log("📤 Replying:", reply);
 
   res.json({
     id: "chatcmpl-" + Date.now(),
@@ -32,29 +35,6 @@ console.log("📥 Incoming request:", req.body);
     ],
   });
 });
-
-// --- Harvey's style and logic ---
-function generateHarveyResponse(userInput) {
-  const lower = userInput.toLowerCase();
-
-  // If user shows interest
-  if (lower.includes("yes") || lower.includes("okay") || lower.includes("tell me")) {
-    return "Right, that makes sense. So... let me break this down real quick. At Nevo Solutions, we provide AI receptionists that never take breaks, never call in sick, and cost about half of what a human receptionist would. The best part? We can even handle outbound calls like this one, generating leads for you on autopilot. Would you be open to booking a quick call with my team so we can show you exactly how this works?";
-  }
-
-  // If user hesitates
-  if (lower.includes("busy") || lower.includes("not interested")) {
-    return "I get it, totally. Time’s valuable, right? Uh, the reason I’m reaching out is because what we’re doing is literally saving companies thousands every year. So... would you be against me setting up a short, no-pressure call with our head office so you can see if this fits your business?";
-  }
-
-  // If user asks about price
-  if (lower.includes("price") || lower.includes("cost")) {
-    return "Great question — I don’t handle pricing myself. What I can do is book you in with my head office team, who’ll walk you through the numbers and options. When’s a good time for a quick chat?";
-  }
-
-  // Default fallback
-  return "Uh, yeah, I hear you. So... here’s the thing: our AI receptionists basically run 24/7, never miss a call, never take holidays — and they do it for half the cost of a full-time hire. What makes the most sense is for me to get you on a quick call with my team so they can dive deeper. Does that sound fair?";
-}
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`✅ Harvey server running on port ${PORT}`));
