@@ -1,32 +1,30 @@
+// server.js
 import express from "express";
 
 const app = express();
 app.use(express.json());
 
-// Health check route
+// Health check
 app.get("/", (req, res) => {
-  res.send("✅ Harvey server is running");
+  res.send("✅ Harvey server running");
 });
 
-// Chat completions route
+// Vapi expects this endpoint
 app.post("/v1/chat/completions", async (req, res) => {
   console.log("📥 Incoming request:", JSON.stringify(req.body, null, 2));
 
-  // You can add logic here to generate different replies based on user messages
-  let reply = "I'm glad to hear from you! Can I quickly confirm what you’re calling about today?";
-
-  // Basic check: look at the last user message if available
   const messages = req.body.messages || [];
-  const lastUserMessage = messages.filter(m => m.role === "user").pop();
-  if (lastUserMessage) {
-    if (/hello/i.test(lastUserMessage.content)) {
-      reply = "Hi there, this is Harvey speaking. How can I help you today?";
-    } else if (/booking/i.test(lastUserMessage.content)) {
-      reply = "Perfect, I can help you with that booking. May I take your name first?";
-    }
-  }
+  const lastMessage = messages[messages.length - 1];
+  const userText =
+    lastMessage?.role === "user" ? lastMessage.content : "Hello there!";
 
-  const response = {
+  // Simple canned reply for now
+  const replyText = `Right, I hear you — "${userText}". Look, I don’t want to keep you long. The reason I’m calling is simple: most businesses are missing calls or overpaying for staff. Nevo Solutions fixes that with an AI receptionist that runs 24/7 at half the cost. How about I book you in with our head office to explore this?`;
+
+  console.log("📤 Replying with:", replyText);
+
+  // ✅ OpenAI-compatible JSON response
+  res.json({
     id: "chatcmpl-" + Date.now(),
     object: "chat.completion",
     created: Date.now(),
@@ -36,19 +34,15 @@ app.post("/v1/chat/completions", async (req, res) => {
         index: 0,
         message: {
           role: "assistant",
-          content: reply
+          content: replyText,
         },
-        finish_reason: "stop"
-      }
-    ]
-  };
-
-  console.log("📤 Sending response:", JSON.stringify(response, null, 2));
-  res.json(response);
+        finish_reason: "stop",
+      },
+    ],
+  });
 });
 
-// Render uses PORT from env vars
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
-  console.log(`🚀 Harvey server running on port ${PORT}`);
+  console.log(`✅ Harvey server running on port ${PORT}`);
 });
