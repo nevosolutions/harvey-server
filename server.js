@@ -23,6 +23,7 @@ app.post("/v1/chat/completions", async (req, res) => {
     reply = "Sorry, I didn’t catch that. Could you repeat?";
   }
 
+  // ✅ Strictly return OpenAI-compatible format
   const response = {
     id: `chatcmpl-${Date.now()}`,
     object: "chat.completion",
@@ -38,8 +39,10 @@ app.post("/v1/chat/completions", async (req, res) => {
         finish_reason: "stop",
       },
     ],
-    response: {
-      content: reply, // 👈 CRUCIAL: Vapi reads this
+    usage: {
+      prompt_tokens: messages?.length || 0,
+      completion_tokens: reply.split(" ").length,
+      total_tokens: (messages?.length || 0) + reply.split(" ").length,
     },
   };
 
