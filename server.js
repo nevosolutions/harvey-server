@@ -1,25 +1,43 @@
+// server.js
 import express from "express";
-import bodyParser from "body-parser";
 import cors from "cors";
+import bodyParser from "body-parser";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const app = express();
+const port = process.env.PORT || 10000;
+
 app.use(cors());
 app.use(bodyParser.json());
 
-app.post("/v1/chat/completions", async (req, res) => {
+app.get("/", (req, res) => {
+  res.send("✅ Harvey server is running.");
+});
+
+app.post("/v1/chat/completions", (req, res) => {
   console.log("📥 Incoming request:", JSON.stringify(req.body, null, 2));
 
-  // Extract messages
+  // Grab last user message
   const messages = req.body.messages || [];
   const lastMessage = messages[messages.length - 1];
-  const userInput = lastMessage?.content || "";
+  let replyText = "";
 
-  // Generate reply (basic echo for now)
-  const reply = `Hello, this is Harvey. I heard you say: "${userInput}". Can you hear me okay?`;
+  if (lastMessage && lastMessage.role === "user") {
+    const userContent = lastMessage.content.toLowerCase();
+    if (userContent.includes("hello")) {
+      replyText = "Hello, this is Harvey. How can I help you today?";
+    } else {
+      replyText = `I heard you say: "${lastMessage.content}". Can you tell me more?`;
+    }
+  } else {
+    replyText = "Hi, this is Harvey. What can I do for you?";
+  }
 
-  // Format response in a way Vapi expects
-  const responsePayload = {
-    id: `chatcmpl-${Date.now()}`,
+  // Always send back Vapi-compatible JSON
+  const response = {
+    id: "chatcmpl-" + Date.now(),
     object: "chat.completion",
     created: Date.now(),
     model: "harvey-1",
@@ -28,22 +46,17 @@ app.post("/v1/chat/completions", async (req, res) => {
         index: 0,
         message: {
           role: "assistant",
-          content: reply
+          content: replyText || "Sorry, I didn’t catch that."
         },
         finish_reason: "stop"
       }
-    ],
-    // 👇 THIS is what Vapi looks for
-    response: {
-      content: reply
-    }
+    ]
   };
 
-  console.log("📤 Sending response:", JSON.stringify(responsePayload, null, 2));
-  res.json(responsePayload);
+  console.log("📤 Sending response:", JSON.stringify(response, null, 2));
+  res.json(response);
 });
 
-const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => {
-  console.log(`✅ Harvey server running on port ${PORT}`);
+app.listen(port, () => {
+  console.log(`✅ Harvey Hello World server running on port ${port}`);
 });
