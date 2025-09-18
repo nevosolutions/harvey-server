@@ -1,55 +1,56 @@
 import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const app = express();
+const port = process.env.PORT || 3000;
+
 app.use(cors());
 app.use(bodyParser.json());
 
+// Main chat endpoint
 app.post("/v1/chat/completions", async (req, res) => {
-  const { messages } = req.body;
-  console.log("📥 Incoming:", JSON.stringify(messages, null, 2));
+  try {
+    const { messages } = req.body;
 
-  // Get the last user message
-  const lastUser = messages?.filter(m => m.role === "user").pop();
-  let reply = "Hello, this is Harvey. How can I help you today?";
+    // Find last user message
+    const lastUserMsg = messages?.filter(m => m.role === "user").pop();
 
-  if (lastUser && lastUser.content) {
-    reply = `I heard you say: "${lastUser.content}". How can I assist?`;
+    // Simple response logic (replace with smarter later)
+    let reply;
+    if (lastUserMsg && lastUserMsg.content) {
+      reply = `You said: "${lastUserMsg.content}". I can help with that.`;
+    } else {
+      reply = "Hello, I'm Harvey. How can I help you today?";
+    }
+
+    // Send valid OpenAI-style completion
+    res.json({
+      id: "chatcmpl-" + Date.now(),
+      object: "chat.completion",
+      created: Date.now(),
+      model: "harvey-1",
+      choices: [
+        {
+          index: 0,
+          message: { role: "assistant", content: reply },
+          finish_reason: "stop"
+        }
+      ]
+    });
+  } catch (error) {
+    console.error("Error in /v1/chat/completions:", error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
-
-  // Hard fallback
-  if (!reply || reply.trim() === "") {
-    reply = "Sorry, I didn’t catch that. Could you repeat?";
-  }
-
-  // ✅ Strictly return OpenAI-compatible format
-  const response = {
-    id: `chatcmpl-${Date.now()}`,
-    object: "chat.completion",
-    created: Date.now(),
-    model: "harvey-1",
-    choices: [
-      {
-        index: 0,
-        message: {
-          role: "assistant",
-          content: reply,
-        },
-        finish_reason: "stop",
-      },
-    ],
-    usage: {
-      prompt_tokens: messages?.length || 0,
-      completion_tokens: reply.split(" ").length,
-      total_tokens: (messages?.length || 0) + reply.split(" ").length,
-    },
-  };
-
-  console.log("📤 Outgoing:", JSON.stringify(response, null, 2));
-  res.json(response);
 });
 
-app.listen(10000, () => {
-  console.log("✅ Harvey server running on port 10000");
+app.get("/", (req, res) => {
+  res.send("✅ Harvey server is running");
+});
+
+app.listen(port, () => {
+  console.log(`🚀 Harvey server running on port ${port}`);
 });
