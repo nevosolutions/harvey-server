@@ -19,15 +19,17 @@ app.post("/v1/chat/completions", async (req, res) => {
     // Find last user message
     const lastUserMsg = messages?.filter(m => m.role === "user").pop();
 
-    // Simple response logic (replace with smarter later)
     let reply;
-    if (lastUserMsg && lastUserMsg.content) {
-      reply = `You said: "${lastUserMsg.content}". I can help with that.`;
+
+    if (lastUserMsg && lastUserMsg.content?.trim()) {
+      // Echo user input with assistant-like style
+      reply = `I heard you say: "${lastUserMsg.content}". How can I help further?`;
     } else {
-      reply = "Hello, I'm Harvey. How can I help you today?";
+      // Default fallback if user said nothing or parsing failed
+      reply = "Hello, I’m Harvey, your receptionist. How can I help you today?";
     }
 
-    // Send valid OpenAI-style completion
+    // Send OpenAI-style completion with guaranteed content
     res.json({
       id: "chatcmpl-" + Date.now(),
       object: "chat.completion",
@@ -43,7 +45,24 @@ app.post("/v1/chat/completions", async (req, res) => {
     });
   } catch (error) {
     console.error("Error in /v1/chat/completions:", error);
-    res.status(500).json({ error: "Internal Server Error" });
+
+    // Always respond with safe fallback
+    res.json({
+      id: "chatcmpl-error-" + Date.now(),
+      object: "chat.completion",
+      created: Date.now(),
+      model: "harvey-1",
+      choices: [
+        {
+          index: 0,
+          message: {
+            role: "assistant",
+            content: "Sorry, I ran into a glitch. Can you repeat that?"
+          },
+          finish_reason: "stop"
+        }
+      ]
+    });
   }
 });
 
